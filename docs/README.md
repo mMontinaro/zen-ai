@@ -6,3 +6,4 @@ Persistent conversations / messages
 Next.js frontend
 Conversation selection
 Basic chat UI
+Stream chat
