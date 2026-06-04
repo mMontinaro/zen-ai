@@ -19,8 +19,7 @@ export type ChatResponse = {
     assistant_message: Message
 }
 
-export type UiMessage = & {
-  id: string;
+export type UiMessage = Message & {
   isStreaming?: boolean;
   isPending?: boolean;
 };

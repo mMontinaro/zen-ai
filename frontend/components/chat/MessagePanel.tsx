@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getMessages } from "@/services/api";
-import { Message } from "../dto";
+import { UiMessage } from "../dto";
 import MessageInput from "./MessageInput";
 import { useChatStore } from "@/lib/chat-store";
+import { sendChatStream } from "@/services/api";
 
 export default function MessagePanel() {
   const { selectedConversationId } = useChatStore();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<UiMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -22,13 +23,67 @@ export default function MessagePanel() {
   }, [messages]);
 
   async function load() {
-    if(!selectedConversationId){
-        return
-    }
+    if(!selectedConversationId) return;
     const data = await getMessages(selectedConversationId);
-    setMessages(data);
+    setMessages(
+      data.map((m) => ({ ...m, isStreaming: false }))
+    );
   }
 
+  async function handleSend(content: string) {
+    if (!selectedConversationId) return;
+
+    // 1. user message (optimistic)
+    const userMsg: UiMessage = {
+      id: Date.now(),
+      role: "user",
+      content,
+      conversation_id: selectedConversationId,
+    };
+
+    // 2. assistant placeholder
+    const assistantId = Date.now() + 1;
+
+    const assistantMsg: UiMessage = {
+      id: assistantId,
+      role: "assistant",
+      content: "",
+      conversation_id: selectedConversationId,
+      isStreaming: true,
+    };
+
+    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+
+    // 3. build message history for LLM
+    const history = [...messages, userMsg].map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    // 4. stream
+    await sendChatStream(
+      selectedConversationId,
+      history,
+      (token) => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, content: m.content + token }
+              : m
+          )
+        );
+      },
+      () => {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? { ...m, isStreaming: false }
+              : m
+          )
+        );
+      }
+    );
+  }
 
   if(!selectedConversationId){
         return (
@@ -43,21 +98,16 @@ export default function MessagePanel() {
       <div style={styles.messages}>
         {messages.map((m) => (
           <div key={m.id} style={styles.message}>
-            <b>{m.role}:</b> {m.content}
+            <b>{m.role}:</b> {m.role === "assistant" && m.isStreaming && (
+  <span>▍</span>
+)}{m.content}
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
 
       <MessageInput
-        conversationId={selectedConversationId}
-        onMessageSent={(user, assistant) => {
-          setMessages((prev) => [
-            ...prev,
-            user,
-            assistant,
-          ]);
-        }}
+        onSend={handleSend}
       />
     </div>
   );

@@ -1,38 +1,25 @@
 "use client";
 
 import { useState } from "react";
-import { sendChatMessage } from "@/services/api";
-import { Message, UiMessage } from "../dto";
 
 export default function MessageInput({
-  conversationId,
-  onMessageSent,
+  onSend,
 }: {
-  conversationId: number;
-  onMessageSent: (
-    user: Message,
-    assistant: Message
-  ) => void;
+  onSend: (content: string) => Promise<void>;
 }) {
   const [value, setValue] = useState("");
   const [loading, setLoading] = useState(false);
 
 
   async function send() {
+    if(loading) return;
     if (!value.trim()) return;
 
     setLoading(true);
 
     try{
-      
-      const response = await sendChatMessage(conversationId, value);
-      
-      onMessageSent(
-        response.user_message,
-        response.assistant_message
-      );
+      await onSend(value);
       setValue("");
-      
     } finally {
       setLoading(false);
     }

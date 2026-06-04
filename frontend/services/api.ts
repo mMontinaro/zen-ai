@@ -58,3 +58,46 @@ export async function sendChatMessage(
 
   return res.json();
 }
+
+export async function sendChatStream(
+  conversationId: number,
+  messages: any[],
+  onToken: (token: string) => void,
+  onDone: () => void
+) {
+  const res = await fetch(
+    `${API_BASE}/chat/${conversationId}/stream`, 
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({messages}),
+    }
+  );
+
+  if (!res.body)
+    throw new Error("No stream body");
+
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+
+    const chunk = decoder.decode(value);
+    const lines = chunk.split("\n\n");
+
+    for (const line of lines) {
+      if (!line.startsWith("data:")) continue;
+
+      const data = line.replace("data: ", "");
+
+      if (data === "[DONE]") {
+        onDone();
+        return;
+      }
+
+      onToken(data);
+    }
+  }
+}
