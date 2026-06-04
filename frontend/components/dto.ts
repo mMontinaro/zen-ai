@@ -3,9 +3,24 @@ export type Conversation = {
     title: string;
 }
 
-export type Message = {
-    id: number;
-    conversation_id: number;
+export type BaseMessage = {
     role: "user" | "assistant";
     content: string;
 }
+
+export type Message = BaseMessage & {
+    id: number;
+    conversation_id: number;
+    
+}
+
+export type ChatResponse = {
+    user_message: Message
+    assistant_message: Message
+}
+
+export type UiMessage = & {
+  id: string;
+  isStreaming?: boolean;
+  isPending?: boolean;
+};

@@ -1,5 +1,4 @@
-import { Conversation, Message } from "@/components/dto";
-import { resolveSoa } from "dns";
+import { ChatResponse, Conversation, Message } from "@/components/dto";
 
 const API_BASE = "http://localhost:8000";
 
@@ -41,15 +40,18 @@ export async function getMessages(conversationId: number): Promise<Message[]> {
 export async function sendChatMessage(
   conversationId: number,
   content: string
-): Promise<{ response: string }> {
-  const res = await fetch(`${API_BASE}/chat/${conversationId}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      role: "user",
-      content,
-    }),
-  });
+): Promise<ChatResponse> {
+  const res = await fetch(
+    `${API_BASE}/chat/${conversationId}`, 
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        role: "user",
+        content,
+      }),
+    }
+  );
 
   if (!res.ok)
     throw new Error("Failed to send message");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getMessages } from "@/services/api";
 import { Message } from "../dto";
 import MessageInput from "./MessageInput";
@@ -9,6 +9,17 @@ import { useChatStore } from "@/lib/chat-store";
 export default function MessagePanel() {
   const { selectedConversationId } = useChatStore();
   const [messages, setMessages] = useState<Message[]>([]);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    load();
+  }, [selectedConversationId]);
+  
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({
+      behavior: "smooth",
+    });
+  }, [messages]);
 
   async function load() {
     if(!selectedConversationId){
@@ -18,9 +29,6 @@ export default function MessagePanel() {
     setMessages(data);
   }
 
-  useEffect(() => {
-    load();
-  }, [selectedConversationId]);
 
   if(!selectedConversationId){
         return (
@@ -38,11 +46,18 @@ export default function MessagePanel() {
             <b>{m.role}:</b> {m.content}
           </div>
         ))}
+        <div ref={bottomRef} />
       </div>
 
       <MessageInput
         conversationId={selectedConversationId}
-        onMessageSent={load}
+        onMessageSent={(user, assistant) => {
+          setMessages((prev) => [
+            ...prev,
+            user,
+            assistant,
+          ]);
+        }}
       />
     </div>
   );
