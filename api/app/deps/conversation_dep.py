@@ -9,7 +9,7 @@ from app.db.models import Conversation
 def get_conversation(
         conversation_id: int,
         db: Session = Depends(get_db)
-) -> Conversation:
+):
     conversation = (
         db.query(Conversation)
         .filter(Conversation.id == conversation_id)
@@ -18,3 +18,5 @@ def get_conversation(
 
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    return conversation

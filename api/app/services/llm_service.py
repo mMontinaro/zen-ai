@@ -48,20 +48,21 @@ class LLMService:
                     "stream": True,
                 },
             ) as response:
+                response.raise_for_status()
+                async for line in response.aiter_lines():
+                    print("Line: ", repr(line))
+                    if not line:
+                        continue
 
-                async for chunk in response.aiter_bytes():
-                    text = chunk.decode("utf-8")
+                    data = json.loads(line)
 
-                    for line in text.split("\n"):
-                        if not line.startswith("{"):
-                            continue
-
-                        data = json.loads(line)
-
-                        if "message" in data:
-                            token = data["message"].get("content")
-                            if token:
-                                yield data["message"]["content"]
+                    if "message" in data:
+                        token = data["message"].get("content")
+                        if token:
+                            yield token
+                    
+                    if data.get("done"):
+                        break
 
 """ THIS IS A NON WORKING IMPLMENETATION, IM REVERTING TO EASIER MORE DIRECT GENERATION
     async def _call_ollama(self, messages, isStream: bool):
