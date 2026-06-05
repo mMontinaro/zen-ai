@@ -57,8 +57,8 @@ export default function MessagePanel() {
 
     // 3. stream
     await sendChatStream(
-      selectedConversationId,
       content,
+      selectedConversationId,
       (token) => {
         setMessages((prev) =>
           prev.map((m) =>

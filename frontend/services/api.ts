@@ -60,8 +60,8 @@ export async function sendChatMessage(
 }
 
 export async function sendChatStream(
-  conversationId: number,
   content: any,
+  conversationId: number,
   onToken: (token: string) => void,
   onDone: () => void
 ) {
