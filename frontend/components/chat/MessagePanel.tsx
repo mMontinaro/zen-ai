@@ -6,6 +6,7 @@ import { UiMessage } from "../dto";
 import MessageInput from "./MessageInput";
 import { useChatStore } from "@/lib/chat-store";
 import { sendChatStream } from "@/services/api";
+import ReactMarkdown from "react-markdown";
 
 export default function MessagePanel() {
   const { selectedConversationId } = useChatStore();
@@ -54,16 +55,10 @@ export default function MessagePanel() {
 
     setMessages((prev) => [...prev, userMsg, assistantMsg]);
 
-    // 3. build message history for LLM
-    const history = [...messages, userMsg].map((m) => ({
-      role: m.role,
-      content: m.content,
-    }));
-
-    // 4. stream
+    // 3. stream
     await sendChatStream(
       selectedConversationId,
-      history,
+      content,
       (token) => {
         setMessages((prev) =>
           prev.map((m) =>
@@ -98,9 +93,16 @@ export default function MessagePanel() {
       <div style={styles.messages}>
         {messages.map((m) => (
           <div key={m.id} style={styles.message}>
-            <b>{m.role}:</b> {m.role === "assistant" && m.isStreaming && (
-  <span>▍</span>
-)}{m.content}
+            
+            <b>{m.role}:</b>
+            
+            {m.role === "assistant" && m.isStreaming && (
+              <span>▍</span>
+            )}
+            
+            <ReactMarkdown>
+              {m.content}
+            </ReactMarkdown>
           </div>
         ))}
         <div ref={bottomRef} />

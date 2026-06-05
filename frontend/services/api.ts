@@ -61,7 +61,7 @@ export async function sendChatMessage(
 
 export async function sendChatStream(
   conversationId: number,
-  messages: any[],
+  content: any,
   onToken: (token: string) => void,
   onDone: () => void
 ) {
@@ -70,7 +70,10 @@ export async function sendChatStream(
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({messages}),
+      body: JSON.stringify({
+        role: "user",
+        content,
+      })
     }
   );
 
@@ -85,7 +88,7 @@ export async function sendChatStream(
     if (done) break;
 
     const chunk = decoder.decode(value);
-    const lines = chunk.split("\n\n");
+    const lines = chunk.split("\n");
 
     for (const line of lines) {
       if (!line.startsWith("data:")) continue;
