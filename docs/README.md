@@ -48,13 +48,19 @@ The goal is to build a personal AI workspace capable of organizing information, 
 Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/mMontinaro/zen-ai.git
 ```
 
 Start the application:
 
 ```bash
 docker compose up --build
+```
+
+Commitizen commits:
+
+```bash
+npx cz 
 ```
 
 ## So Far
