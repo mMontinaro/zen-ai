@@ -83,5 +83,4 @@ docker compose up --build
 
 ## License
 
-Private project.
-
+MIT Licence.
